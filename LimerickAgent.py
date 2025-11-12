@@ -31,13 +31,23 @@ root_agent = SequentialAgent(
     sub_agents=[research_agent, limerick_agent],
 )
 
-# Create the runner with the root agent (matches the pattern used in the notebooks)
-runner = InMemoryRunner(agent=root_agent)
+# Create the runner with the root agent and set app_name to match the agent's origin
+runner = InMemoryRunner(agent=root_agent, app_name="agents")
 
 # Run the agent using run_debug (coroutine that returns a list of events) and collect events in a synchronous script
 async def _run_and_collect(prompt: str):
-    events = await runner.run_debug(prompt)
-    return events
+    """Run the agent and ensure the runner is closed afterward to avoid memory bloat."""
+    try:
+        events = await runner.run_debug(prompt, quiet=True)
+        return events
+    finally:
+        # Close the runner to release in-memory resources (tools, sessions, etc.).
+        # Runner.close() is async, so we await it here.
+        try:
+            await runner.close()
+        except Exception:
+            # Swallow exceptions during cleanup to avoid masking the original error.
+            pass
 
 if __name__ == "__main__":
     prompt = "Boeing"  # initial prompt
