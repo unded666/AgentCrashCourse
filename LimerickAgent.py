@@ -43,11 +43,7 @@ async def _run_and_collect(prompt: str):
     finally:
         # Close the runner to release in-memory resources (tools, sessions, etc.).
         # Runner.close() is async, so we await it here.
-        try:
-            await runner.close()
-        except Exception:
-            # Swallow exceptions during cleanup to avoid masking the original error.
-            pass
+        await runner.close()
 
 if __name__ == "__main__":
     prompt = "Boeing"  # initial prompt
